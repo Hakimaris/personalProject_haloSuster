@@ -1,19 +1,25 @@
 package db
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
-	// _ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 )
 
 var db *sqlx.DB
-var err error
+// var err error
 
-func Init(ctx context.Context) {
+func init() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s",
 		os.Getenv("DB_USERNAME"),
 		os.Getenv("DB_PASSWORD"),
@@ -22,9 +28,7 @@ func Init(ctx context.Context) {
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PARAMS"),
 	)
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	db, err = sqlx.ConnectContext(ctx, "pgx", connStr)
+	db, err = sqlx.Connect("pgx", connStr)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -36,5 +40,11 @@ func Init(ctx context.Context) {
 	// migrate -database "postgresql://root:root@localhost:5432/eniqilo?sslmode=disable" -path db/migrations up
 }
 func CreateConn() *sqlx.DB {
-	return db
+	if db != nil {
+		fmt.Println("Connected to database")
+		return db
+	} else {
+		fmt.Println("DB is not initialized.")
+		return nil
+	}
 }
