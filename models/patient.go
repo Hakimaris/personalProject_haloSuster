@@ -7,7 +7,7 @@ const (
 	Female Gender = "FEMALE"
 )
 
-type Patient struct {
+type PatientModel struct {
 	Id                   string `db:"id" json:"id"`
 	IdentityNumber       int64  `db:"identityNumber" json:"identityNumber"`
 	Name                 string `db:"name" json:"name"`
