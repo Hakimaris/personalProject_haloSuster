@@ -27,7 +27,8 @@ func ItRegister(c *fiber.Ctx) error {
 	var registerResult models.ItModel
 	conn :=db.CreateConn()
 
-	return c.Status(200).JSON(fiber.Map{
-		"message": "im it handler!",
+	return c.Status(201).JSON(fiber.Map{
+		"message": "New message",
+		"additionalKey": "Additional Value",
 	})
 }
