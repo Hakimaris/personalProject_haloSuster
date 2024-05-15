@@ -54,20 +54,27 @@ func UserLogin(c *fiber.Ctx) error {
 	}
 
 	// get user data
-	err_data := conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &loginResult.Password)
+	var dbpassword string
+	err_data := conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
 	if err_data != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_data.Error(),
 		})
 	}
-	fmt.Println("user exist")
+	fmt.Println(dbpassword)
 
 	// check password
-	if helpers.CheckPasswordHash(loginResult.Password, loginResult.Password) {
+	if !helpers.CheckPasswordHash(loginResult.Password, dbpassword) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "password is incorrect",
 		})
 	}
+
+	//   err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
+	// if err != nil {
+	//     c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
+	//     return
+	// }
 	// fmt.Println("parsing body success")
 
 	return c.Status(200).JSON(fiber.Map{
