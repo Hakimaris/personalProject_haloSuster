@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS "record" (
     "createdAt" timestamp NOT NULL DEFAULT (now())
 );
 
-ALTER TABLE "record" ADD FOREIGN KEY ("identityNumber") REFERENCES "patient" ("identityNumber");
+-- ALTER TABLE "record" ADD FOREIGN KEY ("identityNumber") REFERENCES "patient" ("identityNumber");
