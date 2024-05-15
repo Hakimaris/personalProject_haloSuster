@@ -35,9 +35,7 @@ func init() {
 	db.DB.SetMaxOpenConns(100)
 	db.DB.SetConnMaxIdleTime(time.Second * 5)
 	db.DB.SetConnMaxLifetime(time.Hour)
-	// db.DB.SetMaxIdleConns(10)
-	// Migrations
-	// migrate -database "postgresql://root:root@localhost:5432/eniqilo?sslmode=disable" -path db/migrations up
+	db.DB.SetMaxIdleConns(10)
 }
 func CreateConn() *sqlx.DB {
 	if db != nil {
