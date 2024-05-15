@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"HaloSuster/db"
+	// "HaloSuster/db"
 
 	"github.com/golang-jwt/jwt/v5"
 
@@ -60,8 +61,8 @@ func ParseToken(jwtToken string) (string, string, error) {
 	if !OK {
 		return "", "", errors.New("unable to parse claims")
 	}
-	id := fmt.Sprint(parsedToken["Id"])
-	nip := fmt.Sprint(parsedToken["Nip"])
+	id := fmt.Sprint(parsedToken["id"])                                   // changed "Id" to "id"
+	nip := strconv.FormatFloat(parsedToken["nip"].(float64), 'f', -1, 64) // Convert NIP to string without scientific notation // changed "Nip" to "nip"
 	return id, nip, nil
 }
 
@@ -78,43 +79,32 @@ func getBearerToken(header string) (string, error) {
 	return jwtToken[1], nil
 }
 
-func AdminAuthMiddleware(c *fiber.Ctx) error {
-	token, err := getBearerToken(c.Get("Authorization"))
+func AuthMiddleware(c *fiber.Ctx) error {
+	// Get the Authorization header
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(401).SendString("Missing Authorization header")
+	}
+
+	// Extract the JWT token from the Authorization header
+	tokenStr, err := getBearerToken(authHeader)
+
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(401).SendString("Invalid Authorization header format")
 	}
 
-	id, nip, err := ParseToken(token)
+	// Parse and validate the JWT token, and extract the Nip
+	id, nip, err := ParseToken(tokenStr)
+	fmt.Println(tokenStr)
+	fmt.Println(id)
+	fmt.Println(nip)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(401).SendString("Invalid JWT token")
 	}
 
-	// if id.Role != "admin" {
-	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-	// 		"message": "access not allowed",
-	// 	})
-	// }
-
-	// find user
-	conn := db.CreateConn()
-	res, err := conn.Exec("SELECT 1 FROM public.user WHERE nip = $1 LIMIT 1", nip)
-	if err != nil {
-		fmt.Println(err.Error())
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "server error",
-		})
-	}
-
-	if rows, _ := res.RowsAffected(); rows == 0 {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "user not found",
-		})
-	}
-
+	// Store the Nip in the request context
 	c.Locals("userNip", nip)
+
+	// Continue with the next middleware function or the request handler
 	return c.Next()
 }

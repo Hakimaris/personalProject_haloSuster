@@ -4,10 +4,9 @@ import (
 	// "fmt"
 	// "strings"
 	// "time"
-	"HaloSuster/handlers"
 	"HaloSuster/db"
+	"HaloSuster/handlers"
 	"HaloSuster/helpers"
-
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -23,7 +22,7 @@ func main() {
 	user := api.Group("/user")
 	user.Get("/", handlers.GetUserHandler)
 	// The request below doesnt require JWT
-	nurse := user.Group("/nurse",helpers.AdminAuthMiddleware)
+	nurse := user.Group("/nurse", helpers.AuthMiddleware)
 	nurse.Post("/login", handlers.NurseLogin)
 	it := user.Group("/it")
 	it.Get("/", handlers.GetUserHandler)
