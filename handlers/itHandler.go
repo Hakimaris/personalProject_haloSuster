@@ -11,15 +11,84 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetITHandler(c *fiber.Ctx) error {
+func GetUserHandler(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "im it handler!",
 	})
 }
 
-func ItRegister(c *fiber.Ctx) error {
+func UserLogin(c *fiber.Ctx) error {
 	conn := db.CreateConn()
-	var registerResult models.ItModel
+	var loginResult models.UserModel
+
+	if err := c.BodyParser(&loginResult); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "error parsing body",
+		})
+	}
+	fmt.Println("parsing body success")
+
+	// Check nip format
+	if !helpers.ValidateUserNIP(loginResult.NIP) {
+		fmt.Println("nip exist")
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip format is invalid",
+		})
+	}
+	fmt.Println("nip success")
+
+	// Check if NIP exists
+	var count int
+	// err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"user\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
+	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
+	fmt.Println("nip exist success")
+	if err_nip != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": err_nip,
+		})
+	}
+	if count == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip not found",
+		})
+	}
+
+	// get user data
+	err_data := conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &loginResult.Password)
+	if err_data != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": err_data.Error(),
+		})
+	}
+	fmt.Println("user exist")
+
+	// check password
+	if helpers.CheckPasswordHash(loginResult.Password, loginResult.Password) {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "password is incorrect",
+		})
+	}
+	// fmt.Println("parsing body success")
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "User logged in successfully",
+		"data": struct {
+			Id          string `json:"id"`
+			NIP         int64  `json:"nip"`
+			Name        string `json:"name"`
+			AccessToken string `json:"access_token"`
+		}{
+			Id:          loginResult.ID,
+			NIP:         loginResult.NIP,
+			Name:        loginResult.Name,
+			AccessToken: helpers.SignUserJWT(loginResult), // Add the appropriate value for AccessToken
+		},
+	})
+}
+
+func UserRegister(c *fiber.Ctx) error {
+	conn := db.CreateConn()
+	var registerResult models.UserModel
 
 	if err := c.BodyParser(&registerResult); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -38,10 +107,12 @@ func ItRegister(c *fiber.Ctx) error {
 
 	// Check if NIP already exists
 	var count int
-	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"admin\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
+	// err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"user\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
+	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
+	// err_nip := conn.QueryRow("select * from user")
 	if err_nip != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": "error fetching data",
+			"message": err_nip,
 		})
 	}
 	if count > 0 {
@@ -73,7 +144,7 @@ func ItRegister(c *fiber.Ctx) error {
 	}
 
 	// insert data
-	_, err_db := conn.Exec("INSERT INTO admin (nip, name, password) VALUES ($1, $2, $3)", registerResult.NIP, registerResult.Name, newPass)
+	_, err_db := conn.Exec("INSERT INTO \"Users\" (nip, name, password) VALUES ($1, $2, $3)", registerResult.NIP, registerResult.Name, newPass)
 	if err_db != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_db.Error(),
@@ -81,7 +152,7 @@ func ItRegister(c *fiber.Ctx) error {
 	}
 
 	// get inserted data
-	err_data := conn.QueryRow("SELECT id FROM \"admin\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&registerResult.Id)
+	err_data := conn.QueryRow("SELECT id FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&registerResult.ID)
 	if err_data != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_data.Error(),
@@ -91,15 +162,15 @@ func ItRegister(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User registered successfully",
 		"data": struct {
-			Id          string  `json:"id"`
+			Id          string `json:"id"`
 			NIP         int64  `json:"nip"`
 			Name        string `json:"name"`
 			AccessToken string `json:"access_token"`
 		}{
-			Id:          registerResult.Id,
+			Id:          registerResult.ID,
 			NIP:         registerResult.NIP,
 			Name:        registerResult.Name,
-			AccessToken: helpers.SignAdminJWT(registerResult), // Add the appropriate value for AccessToken
+			AccessToken: helpers.SignUserJWT(registerResult), // Add the appropriate value for AccessToken
 		},
 	})
 }

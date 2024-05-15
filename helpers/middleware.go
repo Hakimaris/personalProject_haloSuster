@@ -18,7 +18,7 @@ type UserClaims struct {
 	Nip int64  `json:"nip"`
 }
 
-func SignNurseJWT(user models.NurseModel) string {
+func SignNurseJWT(user models.UserModel) string {
 	// expiredIn := 28800 // 8 hours
 	exp := time.Now().Add(time.Hour * 8)
 	claims := UserClaims{
@@ -27,7 +27,7 @@ func SignNurseJWT(user models.NurseModel) string {
 			ExpiresAt: jwt.NewNumericDate(exp),
 			Issuer:    "HaloSuster",
 		},
-		Id:  user.Id,
+		Id:  user.ID,
 		Nip: user.NIP,
 	}
 	token := jwt.NewWithClaims(
@@ -42,7 +42,7 @@ func SignNurseJWT(user models.NurseModel) string {
 	return signedToken
 }
 
-func SignAdminJWT(user models.ItModel) string {
+func SignUserJWT(user models.UserModel) string {
 	// expiredIn := 28800 // 8 hours
 	exp := time.Now().Add(time.Hour * 8)
 	claims := UserClaims{
@@ -51,7 +51,7 @@ func SignAdminJWT(user models.ItModel) string {
 			ExpiresAt: jwt.NewNumericDate(exp),
 			Issuer:    "HaloSuster",
 		},
-		Id:  user.Id,
+		Id:  user.ID,
 		Nip: user.NIP,
 	}
 	token := jwt.NewWithClaims(

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "user" (
+CREATE TABLE IF NOT EXISTS "Users" (
     "id" uuid UNIQUE NOT NULL DEFAULT (gen_random_uuid()) PRIMARY KEY,
     "nip" bigint UNIQUE NOT NULL,
     "name" varchar(50) NOT NULL,
