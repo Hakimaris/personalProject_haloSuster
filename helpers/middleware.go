@@ -104,6 +104,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 	// Store the Nip in the request context
 	c.Locals("userNip", nip)
+	c.Locals("userId", id)
 
 	// Continue with the next middleware function or the request handler
 	return c.Next()
