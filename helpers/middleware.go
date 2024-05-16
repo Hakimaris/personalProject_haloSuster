@@ -79,7 +79,7 @@ func getBearerToken(header string) (string, error) {
 	return jwtToken[1], nil
 }
 
-func AuthMiddleware(c *fiber.Ctx) error {
+func AuthITMiddleware(c *fiber.Ctx) error {
 	// Get the Authorization header
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
@@ -95,9 +95,46 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 	// Parse and validate the JWT token, and extract the Nip
 	id, nip, err := ParseToken(tokenStr)
-	fmt.Println(tokenStr)
+	// fmt.Println(tokenStr)
 	fmt.Println(id)
 	fmt.Println(nip)
+	if err != nil {
+		return c.Status(401).SendString("Invalid JWT token")
+	}
+
+	if !(id[:3] == "615"){
+		return c.Status(401).SendString("Invalid nip for IT Admin")
+	}
+
+	// Store the Nip in the request context
+	c.Locals("userNip", nip)
+	c.Locals("userId", id)
+
+	// Continue with the next middleware function or the request handler
+	return c.Next()
+}
+
+func AuthAllMiddleware(c *fiber.Ctx) error {
+	// Get the Authorization header
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(401).SendString("Missing Authorization header")
+	}
+
+	// Extract the JWT token from the Authorization header
+	tokenStr, err := getBearerToken(authHeader)
+
+	if err != nil {
+		return c.Status(401).SendString("Invalid Authorization header format")
+	}
+
+	// Parse and validate the JWT token, and extract the Nip
+	id, nip, err := ParseToken(tokenStr)
+
+	if !(id[:3] == "303" || id[:3] == "615"){
+		return c.Status(401).SendString("Invalid nip")
+	}
+
 	if err != nil {
 		return c.Status(401).SendString("Invalid JWT token")
 	}

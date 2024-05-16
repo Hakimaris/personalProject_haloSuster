@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func ValidateUserNIP(nip int64) bool {
+func ValidateNIP(nip int64) bool {
 	nipStr := strconv.FormatInt(nip, 10)
 
 	// Check length
@@ -14,7 +14,7 @@ func ValidateUserNIP(nip int64) bool {
 	}
 
 	// Check first three digits
-	if nipStr[:3] != "615" {
+	if nipStr[:3] != "615" && nipStr[:3] != "303"{
 		return false
 	}
 
@@ -53,6 +53,20 @@ func ValidateName(name string) bool {
 
 func ValidatePassword(password string) bool {
 	if len(password) < 8 || len(password) > 33 {
+		return false
+	}
+	return true
+}
+
+func ValidateRoleRequest(role string) bool {
+	if role != "nurse" && role != "it" {
+		return false
+	}
+	return true
+}
+
+func ValidateCreatedAtRequest(created string) bool {
+	if created != "asc" && created != "desc" {
 		return false
 	}
 	return true

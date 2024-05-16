@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetUserHandler(c *fiber.Ctx) error {
+func GetUser(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "im it handler!",
 	})
@@ -26,22 +26,20 @@ func UserLogin(c *fiber.Ctx) error {
 			"message": "error parsing body",
 		})
 	}
-	fmt.Println("parsing body success")
 
 	// Check nip format
-	if !helpers.ValidateUserNIP(loginResult.NIP) {
+	if !helpers.ValidateNIP(loginResult.NIP) {
 		fmt.Println("nip exist")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
 		})
 	}
-	fmt.Println("nip success")
 
 	// Check if NIP exists
 	var count int
 	// err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"user\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
 	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
-	fmt.Println("nip exist success")
+	// fmt.Println("nip exist success")
 	if err_nip != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_nip,
@@ -69,13 +67,6 @@ func UserLogin(c *fiber.Ctx) error {
 			"message": "password is incorrect",
 		})
 	}
-
-	//   err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
-	// if err != nil {
-	//     c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
-	//     return
-	// }
-	// fmt.Println("parsing body success")
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User logged in successfully",
@@ -105,7 +96,7 @@ func UserRegister(c *fiber.Ctx) error {
 
 	fmt.Println("parsing body success")
 	// Check nip format
-	if !helpers.ValidateUserNIP(registerResult.NIP) {
+	if !helpers.ValidateNIP(registerResult.NIP) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
 		})
@@ -114,23 +105,21 @@ func UserRegister(c *fiber.Ctx) error {
 
 	// Check if NIP already exists
 	var count int
-	// err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"user\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
 	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
-	// err_nip := conn.QueryRow("select * from user")
 	if err_nip != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_nip,
 		})
 	}
 	if count > 0 {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(409).JSON(fiber.Map{
 			"message": "nip already exists",
 		})
 	}
 
 	// check name format
 	if !helpers.ValidateName(registerResult.Name) {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(409).JSON(fiber.Map{
 			"message": "name format should be between 5-50 characters",
 		})
 	}
