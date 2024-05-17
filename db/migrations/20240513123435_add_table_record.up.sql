@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS "record" (
     "nip" bigint NOT NULL,
     "symptoms" TEXT NOT NULL,
     "medications" TEXT NOT NULL,
+    "createdBy" uuid NOT NULL,
     "createdAt" timestamp NOT NULL DEFAULT (now())
 );
 
