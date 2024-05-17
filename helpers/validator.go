@@ -3,13 +3,14 @@ package helpers
 import (
 	"strconv"
 	"time"
+	"regexp"
 )
 
 func ValidateNIP(nip int64) bool {
 	nipStr := strconv.FormatInt(nip, 10)
 
 	// Check length
-	if len(nipStr) != 13 {
+	if len(nipStr) < 13 && len(nipStr) > 15{
 		return false
 	}
 
@@ -37,7 +38,7 @@ func ValidateNIP(nip int64) bool {
 
 	// Check eleventh to thirteenth digits (random)
 	random, err := strconv.Atoi(nipStr[10:])
-	if err != nil || random < 0 || random > 999 {
+	if err != nil || random < 0 || random > 99999 {
 		return false
 	}
 
@@ -58,15 +59,9 @@ func ValidatePassword(password string) bool {
 	return true
 }
 
-func ValidateRoleRequest(role string) bool {
-	if role != "nurse" && role != "it" {
-		return false
-	}
-	return true
-}
-
-func ValidateCreatedAtRequest(created string) bool {
-	if created != "asc" && created != "desc" {
+func ValidateURL(url string) bool {
+	regex := `^(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})(\/[a-zA-Z0-9-._~:/?#@!$&'()*+,;=%]*)?$`
+	if !regexp.MustCompile(regex).MatchString(url) {
 		return false
 	}
 	return true

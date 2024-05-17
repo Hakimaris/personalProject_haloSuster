@@ -7,15 +7,16 @@ import (
 	"HaloSuster/helpers"
 	"HaloSuster/models"
 	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetUser(c *fiber.Ctx) error {
-	return c.Status(200).JSON(fiber.Map{
-		"message": "im it handler!",
-	})
-}
+// func GetUser(c *fiber.Ctx) error {
+// 	return c.Status(200).JSON(fiber.Map{
+// 		"message": "im it handler!",
+// 	})
+// }
 
 func UserLogin(c *fiber.Ctx) error {
 	conn := db.CreateConn()
@@ -102,6 +103,12 @@ func UserRegister(c *fiber.Ctx) error {
 		})
 	}
 	fmt.Println("nip format is valid")
+
+	if strconv.FormatInt(registerResult.NIP, 10)[:3] != "615" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip format is invalid for it user",
+		})
+	}
 
 	// Check if NIP already exists
 	var count int

@@ -5,7 +5,7 @@ type UserModel struct {
 	NIP                 int64     `json:"nip" db:"nip"`
 	Name                string    `json:"name" db:"name"`
 	Password            string    `json:"password" db:"password"`
-	IdentityCardScanning string   `json:"identity_card_scanning" db:"identityCardScanning"`
+	IdentityCardScanning string   `json:"identityCardScanImg" db:"identityCardScanning"`
 	CreatedAt           string `json:"created_at" db:"createdAt"`
 	UpdatedAt           string `json:"updated_at" db:"updatedAt"`
 }

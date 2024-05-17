@@ -4,6 +4,7 @@ import (
 	"HaloSuster/db"
 	"HaloSuster/helpers"
 	"HaloSuster/models"
+	"fmt"
 
 	"strconv"
 
@@ -60,6 +61,12 @@ func NurseRegister(c *fiber.Ctx) error {
 		})
 	}
 
+	if !helpers.ValidateURL(nurseModel.IdentityCardScanning) {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "identityCardScanning format is invalid url",
+		})
+	}
+
 	// Check if NIP exists
 	var count int
 	err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", nurseModel.NIP).Scan(&count)
@@ -75,15 +82,15 @@ func NurseRegister(c *fiber.Ctx) error {
 	}
 
 	// Hash password
-	newPass, err_psw := helpers.HashPassword(helpers.GenerateRandom(10))
-	if err_psw != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "error hashing default password",
-		})
-	}
+	// newPass, err_psw := helpers.HashPassword(helpers.GenerateRandom(10))
+	// if err_psw != nil {
+	// 	return c.Status(500).JSON(fiber.Map{
+	// 		"message": "error hashing default password",
+	// 	})
+	// }
 
 	// insert data
-	_, err_db = conn.Exec("INSERT INTO \"Users\" (nip, name, password) VALUES ($1, $2, $3)", nurseModel.NIP, nurseModel.Name, newPass)
+	_, err_db = conn.Exec("INSERT INTO \"Users\" (nip, name, \"identityCardScanning\") VALUES ($1, $2, $3)", nurseModel.NIP, nurseModel.Name, nurseModel.IdentityCardScanning)
 	if err_db != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_db.Error(),
@@ -104,12 +111,12 @@ func NurseRegister(c *fiber.Ctx) error {
 			Id          string `json:"id"`
 			NIP         int64  `json:"nip"`
 			Name        string `json:"name"`
-			AccessToken string `json:"access_token"`
+			// AccessToken string `json:"access_token"`
 		}{
 			Id:          nurseModel.ID,
 			NIP:         nurseModel.NIP,
 			Name:        nurseModel.Name,
-			AccessToken: helpers.SignUserJWT(nurseModel), // Add the appropriate value for AccessToken
+			// AccessToken: helpers.SignUserJWT(nurseModel), // Add the appropriate value for AccessToken
 		},
 	})
 }
@@ -136,6 +143,7 @@ func NursePut(c *fiber.Ctx) error {
 			"message": "nip format is invalid for nurse",
 		})
 	}
+	
 	// Check if User exists
 	var countUser int
 	err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
@@ -152,7 +160,7 @@ func NursePut(c *fiber.Ctx) error {
 
 	// Check if NIP exists
 	var count int
-	err_db = conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", nurseModel.NIP).Scan(&count)
+	err_db = conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 AND id != $2 LIMIT 1", nurseModel.NIP, userId).Scan(&count)
 	if err_db != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_db,
@@ -188,6 +196,7 @@ func NurseDelete(c *fiber.Ctx) error {
 			"message": err_db,
 		})
 	}
+	fmt.Print(nip[:3])
 	if nip[:3] != "303" {
 		return c.Status(404).JSON(fiber.Map{
 			"message": "User is not a nurse",
@@ -230,6 +239,13 @@ func NurseAccess(c *fiber.Ctx) error {
 			"message": "error parsing body",
 		})
 	}
+
+	if !helpers.ValidatePassword(nurseModel.Password) {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "password format is invalid",
+		})
+	}
+
 
 	// Check if User exists
 	var countUser int
