@@ -9,17 +9,9 @@ import (
 	"HaloSuster/models"
 
 	"github.com/gofiber/fiber/v2"
-	_ "github.com/jackc/pgx/v4/stdlib" // Import pgx driver for sqlx
-	"github.com/jmoiron/sqlx"
+	// _ "github.com/jackc/pgx/v4/stdlib" // Import pgx driver for sqlx
+	// "github.com/jmoiron/sqlx"
 )
-
-// type User struct {
-// 	ID        string `json:"id" db:"id"`
-// 	Name      string `json:"name" db:"name"`
-// 	NIP       string `json:"nip" db:"nip"`
-// 	Role      string `json:"role" db:"role"`
-// 	CreatedAt string `json:"createdAt" db:"created_at"`
-// }
 
 func GetUser(c *fiber.Ctx) error {
 	conn := db.CreateConn() // Use the global db connection
@@ -80,27 +72,51 @@ func GetUser(c *fiber.Ctx) error {
 	if err != nil {
 		offsetInt = 0
 	}
-	args["limit"] = limitInt
-	args["offset"] = offsetInt
-
+	
 	// Add limit and offset to the query string
 	query += " LIMIT :limit OFFSET :offset"
-
-	// Execute the query
-	var users models.UserModel
-	namedQuery, namedArgs, err := sqlx.Named(query, args)
-	if err != nil {
-		log.Println("Failed to prepare the query:", err)
-		return c.Status(500).SendString(err.Error())
-	}
+	args["limit"] = limitInt
+	args["offset"] = offsetInt
+	
+	namedQuery, err := conn.PrepareNamed(query)
 	fmt.Print(namedQuery)
-	namedQuery = conn.Rebind(namedQuery)
+if err != nil {
+    log.Println("Failed to prepare the query:", err)
+    return c.Status(500).SendString(err.Error())
+}
 
-	err = conn.Select(&users, namedQuery, namedArgs...)
-	if err != nil {
-		log.Println("Failed to execute the query:", err)
-		return c.Status(500).SendString(err.Error())
-	}
+// Define a slice to hold the results
+var users []models.UserModel
+
+// Execute the query and load the results into the users slice
+err = namedQuery.Select(&users, args)
+if err != nil {
+    log.Println("Failed to execute the query:", err)
+    return c.Status(500).SendString(err.Error())
+}
+
+	// // Execute the query
+	// var users models.UserModel
+	// namedQuery, err := conn.NamedQuery(query, args)
+	// if err != nil {
+	// 	log.Println("Failed to prepare the query:", err)
+	// 	return c.Status(500).SendString(err.Error())
+	// }
+	// fmt.Print(namedQuery)
+	// reboundQuery := conn.Rebind(query)
+	// fmt.Print("hae")
+	// fmt.Println(reboundQuery)
+	// // Convert args map to a slice of interfaces
+	// argSlice := make([]interface{}, 0, len(args))
+	// for _, v := range args {
+	// 	argSlice = append(argSlice, v)
+	// }
+
+	// err = conn.Select(&users, reboundQuery, argSlice...) // Replace namedArgs with argSlice
+	// if err != nil {
+	// 	log.Println("Failed to execute the query:", err)
+	// 	return c.Status(500).SendString(err.Error())
+	// }
 
 	// Return the results as JSON
 	return c.JSON(users)
