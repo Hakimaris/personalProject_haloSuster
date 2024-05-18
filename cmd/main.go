@@ -43,7 +43,7 @@ func main() {
 	medical.Post("/patient", helpers.AuthAllMiddleware, handlers.MedicalAddPatient)
 	medical.Get("/patient", helpers.AuthAllMiddleware, handlers.MedicalGetPatient)
 	medical.Post("/record", helpers.AuthAllMiddleware, handlers.MedicalAddRecord)
-	// medical.Get("/record", helpers.AuthAllMiddleware, handlers.RecordGet)
+	medical.Get("/record", helpers.AuthAllMiddleware, handlers.MedicalGetRecord)
 	api.Post("/image", helpers.AuthAllMiddleware, handlers.UploadImage)
 
 	log.Fatal(app.Listen(":8080"))

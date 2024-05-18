@@ -269,9 +269,80 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 }
 
 func MedicalGetRecord(c *fiber.Ctx) error {
-	// BELUM SEMUA
-	return c.Status(200).JSON(fiber.Map{
-		"message": "im it handler!",
-	})
+    conn := db.CreateConn() // Use the global db connection
 
+    // Get the query parameters
+    identityNumber := c.Query("identityDetail.identityNumber", "")
+    userId := c.Query("createdBy.userId", "")
+    nip := c.Query("createdBy.nip", "")
+    limit := c.Query("limit", "5")
+    offset := c.Query("offset", "0")
+    sortOrder := c.Query("createdAt", "desc")
+
+    // Build the base query
+    query := `SELECT r."identityNumber", p."phoneNumber", p.name, p."birthDate", p.gender, p."identityCardScanning", 
+    r.symptoms, r.medications, r."createdAt", u.nip, u.name AS creatorName, u.id AS userId
+    FROM "record" r
+    INNER JOIN "patient" p ON r."identityNumber" = p."identityNumber"
+    INNER JOIN "Users" u ON r."creatorId" = u.id`
+
+    // Add the WHERE clauses for the optional parameters
+    if identityNumber != "" {
+        query += ` WHERE r."identityNumber" = ` + identityNumber
+    }
+    if userId != "" {
+        query += ` AND u.id = '` + userId + `'`
+    }
+    if nip != "" {
+        query += ` AND u.nip = '` + nip + `'`
+    }
+
+    // Add the ORDER BY and LIMIT clauses
+    query += ` ORDER BY r."createdAt" ` + sortOrder
+    query += ` LIMIT ` + limit + ` OFFSET ` + offset
+
+    rows, err := conn.Query(query)
+    if err != nil {
+        log.Println("Failed to execute the query:", err)
+        return c.Status(500).SendString(err.Error())
+    }
+    defer rows.Close()
+
+    // Prepare the data
+    data := make([]map[string]interface{}, 0)
+    for rows.Next() {
+        var identityNumber int64
+        var phoneNumber, name, birthDate, gender, identityCardScanImg, symptoms, medications, createdAt, creatorName, userId string
+        var nip int64
+        err = rows.Scan(&identityNumber, &phoneNumber, &name, &birthDate, &gender, &identityCardScanImg, &symptoms, &medications, &createdAt, &nip, &creatorName, &userId)
+        if err != nil {
+            log.Println("Failed to scan row:", err)
+            return c.Status(500).SendString(err.Error())
+        }
+
+        data = append(data, map[string]interface{}{
+            "identityDetail": map[string]interface{}{
+                "identityNumber":      identityNumber,
+                "phoneNumber":         phoneNumber,
+                "name":                name,
+                "birthDate":           birthDate,
+                "gender":              gender,
+                "identityCardScanImg": identityCardScanImg,
+            },
+            "symptoms":   symptoms,
+            "medications": medications,
+            "createdAt":  createdAt,
+            "createdBy": map[string]interface{}{
+                "nip":    nip,
+                "name":   creatorName,
+                "userId": userId,
+            },
+        })
+    }
+
+    // Return the results as JSON
+    return c.Status(200).JSON(fiber.Map{
+        "message": "success",
+        "data":    data,
+    })
 }
