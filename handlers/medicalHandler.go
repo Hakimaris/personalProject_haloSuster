@@ -224,9 +224,11 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 
 	// Return the results as JSON
 	return c.Status(200).JSON(patients)
+	// BELUM FORMATTING patients
 }
 
 func MedicalGetRecord (c *fiber.Ctx) error {
+	// BELUM SEMUA
 	return c.Status(200).JSON(fiber.Map{
 		"message": "im it handler!",
 	})
