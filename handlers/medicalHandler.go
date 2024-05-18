@@ -158,7 +158,7 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 	fmt.Println("Symptoms:", recordRequest.Symptoms)
 	fmt.Println("Medications:", recordRequest.Medications)
 	fmt.Println("UserID:", userID)
-	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"createdBy\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
+	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"creatorId\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err,
@@ -232,6 +232,14 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 
 	// Define a slice to hold the results
 	var patients []models.PatientModel
+	type PatientView struct {
+		IdentityNumber int64  `json:"identityNumber"`
+		PhoneNumber    string `json:"phoneNumber"`
+		Name           string `json:"name"`
+		Birthdate      string `json:"birthDate"`
+		Gender         string `json:"gender"`
+		CreatedAt      string `json:"createdAt`
+	}
 
 	// Execute the query and load the results into the patients slice
 	err = namedQuery.Select(&patients, args)
@@ -240,8 +248,23 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 		return c.Status(500).SendString(err.Error())
 	}
 
+	var PatientViews []PatientView
+	for _, patient := range patients {
+		PatientViews = append(PatientViews, PatientView{
+			IdentityNumber: patient.IdentityNumber,
+			PhoneNumber:    patient.PhoneNumber,
+			Name:           patient.Name,
+			Gender:         string(patient.Gender), // Convert patient.Gender to string
+			Birthdate:      patient.BirthDate,
+			CreatedAt:      patient.CreatedAt,
+		})
+	}
+
 	// Return the results as JSON
-	return c.Status(200).JSON(patients)
+	return c.Status(200).JSON(fiber.Map{
+		"message": "success",
+		"data":    PatientViews,
+	})
 	// BELUM FORMATTING patients
 }
 
