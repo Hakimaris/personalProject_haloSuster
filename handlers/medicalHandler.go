@@ -226,7 +226,7 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 	return c.Status(200).JSON(patients)
 }
 
-func MedicatGetRecord (c *fiber.Ctx) error {
+func MedicalGetRecord (c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "im it handler!",
 	})
