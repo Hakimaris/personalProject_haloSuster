@@ -67,7 +67,8 @@ func ValidateURL(url string) bool {
 }
 
 func ValidateIdentity(identity int64) bool {
-	return len(strconv.FormatInt(identity, 10)) != 16
+	// return len(strconv.FormatInt(identity, 10)) != 17
+	return len(strconv.FormatInt(identity, 10)) == 16
 }
 
 func ValidatePhoneNumber(number string) bool {
@@ -85,8 +86,8 @@ func ValidateBirthDate(birthDate string) bool {
 }
 
 func ValidateGender(gender models.Gender) bool {
-    fmt.Printf("Input gender: %v, type: %T\n", gender, gender)
-    isValid := !(gender != "male" && gender != "female")
-    fmt.Printf("Is valid: %v\n", isValid)
-    return isValid
+	fmt.Printf("Input gender: %v, type: %T\n", gender, gender)
+	isValid := !(gender != "male" && gender != "female")
+	fmt.Printf("Is valid: %v\n", isValid)
+	return isValid
 }

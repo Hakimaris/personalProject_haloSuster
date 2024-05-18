@@ -1,6 +1,6 @@
 CREATE TYPE gender AS ENUM (
-    'MALE',
-    'FEMALE'
+    'male',
+    'female'
 );
 
 CREATE TABLE IF NOT EXISTS "patient" (

@@ -14,6 +14,6 @@ type PatientModel struct {
 	PhoneNumber          string `db:"phoneNumber" json:"phoneNumber"`
 	BirthDate            string `db:"birthDate" json:"birthDate"`
 	Gender               Gender `db:"gender" json:"gender"`
-	IdentityCardScanning string `db:"identityCardScanning" json:"identityCardScanning"`
+	IdentityCardScanImg string `db:"identityCardScanImg" json:"identityCardScanImg"`
 	CreatedAt            string `db:"createdAt" json:"createdAt"`
 }

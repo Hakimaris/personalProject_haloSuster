@@ -23,16 +23,28 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 			"message": "error parsing body",
 		})
 	}
+	fmt.Println("IdentityNumber:", patientRequest.IdentityNumber)
+	fmt.Println("Name:", patientRequest.Name)
+	fmt.Println("PhoneNumber:", patientRequest.PhoneNumber)
+	fmt.Println("BirthDate:", patientRequest.BirthDate)
+	fmt.Println("IdentityCardScanImg:", patientRequest.IdentityCardScanImg)
+	fmt.Println("Gender:", patientRequest.Gender)
 
-	if patientRequest.IdentityNumber == 0 || patientRequest.Name == "" || patientRequest.PhoneNumber == "" || patientRequest.BirthDate == "" || patientRequest.IdentityCardScanning == "" || patientRequest.Gender == "" {
+	if patientRequest.IdentityNumber == 0 || patientRequest.Name == "" || patientRequest.PhoneNumber == "" || patientRequest.BirthDate == "" || patientRequest.IdentityCardScanImg == "" || patientRequest.Gender == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "identity info not complete",
+			// "data":		patientRequest.IdentityNumber,
+			// "data2":		patientRequest.Name,
+			// "data3":		patientRequest.PhoneNumber,
+			// "data4":		patientRequest.BirthDate,
+			// "data5":		patientRequest.IdentityCardScanImg,
+			// "data6":		patientRequest.Gender,
 		})
 	}
 
 	if !helpers.ValidateIdentity(patientRequest.IdentityNumber) {
 		return c.Status(400).JSON(fiber.Map{
-			"message": "identity is invalid",
+			"message": "identity number is invalid",
 		})
 	}
 
@@ -42,7 +54,7 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 		})
 	}
 
-	if !helpers.ValidateURL(patientRequest.IdentityCardScanning) {
+	if !helpers.ValidateURL(patientRequest.IdentityCardScanImg) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "identity card scan image is invalid",
 		})
@@ -76,7 +88,7 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 	}
 
 	// Insert the data
-	_, err = conn.Exec("INSERT INTO \"patient\" (\"identityNumber\", name, \"phoneNumber\", \"birthDate\", gender, \"identityCardScanImg\" ) VALUES ($1, $2, $3, $4, $5, %6)", patientRequest.IdentityNumber, patientRequest.Name, patientRequest.PhoneNumber, patientRequest.BirthDate, patientRequest.Gender, patientRequest.IdentityCardScanning)
+	_, err = conn.Exec("INSERT INTO \"patient\" (\"identityNumber\", name, \"phoneNumber\", \"birthDate\", gender, \"identityCardScanning\" ) VALUES ($1, $2, $3, $4, $5, $6)", patientRequest.IdentityNumber, patientRequest.Name, patientRequest.PhoneNumber, patientRequest.BirthDate, patientRequest.Gender, patientRequest.IdentityCardScanImg)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err,
@@ -91,7 +103,7 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 func MedicalAddRecord(c *fiber.Ctx) error {
 	conn := db.CreateConn()
 	userNip := c.Locals("userNip")
-	userID := c.Locals("userID")
+	userID := c.Locals("userId")
 
 	var recordRequest models.RecordModel
 	if err := c.BodyParser(&recordRequest); err != nil {
@@ -127,6 +139,8 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 	}
 
 	// Check if the user is authorized to add the record
+	// fmt.Println(userNip)
+	// fmt.Println(userID)
 	err = conn.QueryRow("SELECT COUNT(*) FROM  \"Users\" WHERE nip = $1 AND id = $2 AND password IS NOT NULL LIMIT 1", userNip, userID).Scan(&count)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -140,7 +154,11 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 	}
 
 	// Insert the data
-	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"identityNumber\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
+	fmt.Println("IdentityNumber:", recordRequest.IdentityNumber)
+	fmt.Println("Symptoms:", recordRequest.Symptoms)
+	fmt.Println("Medications:", recordRequest.Medications)
+	fmt.Println("UserID:", userID)
+	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"createdBy\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err,
@@ -227,7 +245,7 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 	// BELUM FORMATTING patients
 }
 
-func MedicalGetRecord (c *fiber.Ctx) error {
+func MedicalGetRecord(c *fiber.Ctx) error {
 	// BELUM SEMUA
 	return c.Status(200).JSON(fiber.Map{
 		"message": "im it handler!",
