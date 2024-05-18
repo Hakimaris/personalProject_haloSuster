@@ -19,7 +19,7 @@ func main() {
 	app := fiber.New()
 
 	api := app.Group("/v1")
-	image := api.Group("/image")
+	// image := api.Group("/image")
 	medical := api.Group("/medical")
 	user := api.Group("/user")
 	it := user.Group("/it")
@@ -29,7 +29,7 @@ func main() {
 	it.Post("/register", handlers.UserRegister)
 	it.Post("/login", handlers.UserLogin)
 	nurse.Post("/login", handlers.NurseLogin)
-	
+
 	// The request below requires JWT for Admin
 	// nurse := user.Group("/nurse", helpers.AuthITMiddleware)
 	nurse.Post("/register", helpers.AuthITMiddleware, handlers.NurseRegister)
@@ -38,14 +38,13 @@ func main() {
 	nurse.Post("/:userId/access", helpers.AuthITMiddleware, handlers.NurseAccess)
 	user.Get("/", helpers.AuthITMiddleware, handlers.GetUser)
 	// nurse.Put("/:id", helpers.AuthITMiddleware, handlers.NursePut)
-	
 
 	// The request below requires JWT for either nurse or IT role
 	medical.Post("/patient", helpers.AuthAllMiddleware, handlers.MedicalAddPatient)
 	medical.Get("/patient", helpers.AuthAllMiddleware, handlers.MedicalGetPatient)
 	medical.Post("/record", helpers.AuthAllMiddleware, handlers.MedicalAddRecord)
 	// medical.Get("/record", helpers.AuthAllMiddleware, handlers.RecordGet)
-	image.Post("/", helpers.AuthAllMiddleware, handlers.UploadImage)
+	api.Post("/image", helpers.AuthAllMiddleware, handlers.UploadImage)
 
 	log.Fatal(app.Listen(":8080"))
 }
