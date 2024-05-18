@@ -3,8 +3,8 @@ package models
 type Gender string
 
 const (
-	Male   Gender = "MALE"
-	Female Gender = "FEMALE"
+	Male   Gender = "male"
+	Female Gender = "female"
 )
 
 type PatientModel struct {

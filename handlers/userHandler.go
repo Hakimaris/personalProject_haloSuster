@@ -9,8 +9,6 @@ import (
 	"HaloSuster/models"
 
 	"github.com/gofiber/fiber/v2"
-	// _ "github.com/jackc/pgx/v4/stdlib" // Import pgx driver for sqlx
-	// "github.com/jmoiron/sqlx"
 )
 
 func GetUser(c *fiber.Ctx) error {
@@ -95,29 +93,6 @@ if err != nil {
     return c.Status(500).SendString(err.Error())
 }
 
-	// // Execute the query
-	// var users models.UserModel
-	// namedQuery, err := conn.NamedQuery(query, args)
-	// if err != nil {
-	// 	log.Println("Failed to prepare the query:", err)
-	// 	return c.Status(500).SendString(err.Error())
-	// }
-	// fmt.Print(namedQuery)
-	// reboundQuery := conn.Rebind(query)
-	// fmt.Print("hae")
-	// fmt.Println(reboundQuery)
-	// // Convert args map to a slice of interfaces
-	// argSlice := make([]interface{}, 0, len(args))
-	// for _, v := range args {
-	// 	argSlice = append(argSlice, v)
-	// }
-
-	// err = conn.Select(&users, reboundQuery, argSlice...) // Replace namedArgs with argSlice
-	// if err != nil {
-	// 	log.Println("Failed to execute the query:", err)
-	// 	return c.Status(500).SendString(err.Error())
-	// }
-
-	// Return the results as JSON
-	return c.JSON(users)
+		// Return the results as JSON
+	return c.Status(200).JSON(users)
 }

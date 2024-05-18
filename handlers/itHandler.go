@@ -28,6 +28,13 @@ func UserLogin(c *fiber.Ctx) error {
 		})
 	}
 
+	//Check if request is empty
+	if loginResult.NIP == 0 || loginResult.Password == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip or password is empty",
+		})
+	}
+
 	// Check nip format
 	if !helpers.ValidateNIP(loginResult.NIP) {
 		fmt.Println("nip exist")
@@ -49,6 +56,12 @@ func UserLogin(c *fiber.Ctx) error {
 	if count == 0 {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip not found",
+		})
+	}
+	
+	if strconv.FormatInt(loginResult.NIP, 10)[:3] != "615" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip format is invalid for it user",
 		})
 	}
 
@@ -95,14 +108,19 @@ func UserRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	fmt.Println("parsing body success")
+	//Check if request is empty
+	if registerResult.NIP == 0 || registerResult.Password == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip or password is empty",
+		})
+	}
 	// Check nip format
 	if !helpers.ValidateNIP(registerResult.NIP) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
 		})
 	}
-	fmt.Println("nip format is valid")
+	// fmt.Println("nip format is valid")
 
 	if strconv.FormatInt(registerResult.NIP, 10)[:3] != "615" {
 		return c.Status(400).JSON(fiber.Map{
