@@ -90,6 +90,8 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 
 func MedicalAddRecord(c *fiber.Ctx) error {
 	conn := db.CreateConn()
+	userNip := c.Locals("userNip")
+	userID := c.Locals("userID")
 
 	var recordRequest models.RecordModel
 	if err := c.BodyParser(&recordRequest); err != nil {
@@ -124,8 +126,21 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check if the user is authorized to add the record
+	err = conn.QueryRow("SELECT COUNT(*) FROM  \"Users\" WHERE nip = $1 AND id = $2 AND password IS NOT NULL LIMIT 1", userNip, userID).Scan(&count)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": err,
+		})
+	}
+	if count == 0 {
+		return c.Status(401).JSON(fiber.Map{
+			"message": "user is not authorized to add record",
+		})
+	}
+
 	// Insert the data
-	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications) VALUES ($1, $2, $3)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications)
+	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"identityNumber\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err,
@@ -209,4 +224,11 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 
 	// Return the results as JSON
 	return c.Status(200).JSON(patients)
+}
+
+func MedicatGetRecord (c *fiber.Ctx) error {
+	return c.Status(200).JSON(fiber.Map{
+		"message": "im it handler!",
+	})
+
 }

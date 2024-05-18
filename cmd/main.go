@@ -19,7 +19,7 @@ func main() {
 	app := fiber.New()
 
 	api := app.Group("/v1")
-	image := api.Group("/image")
+	// image := api.Group("/image")
 	medical := api.Group("/medical")
 	user := api.Group("/user")
 	it := user.Group("/it")
@@ -45,7 +45,7 @@ func main() {
 	medical.Get("/patient", helpers.AuthAllMiddleware, handlers.MedicalGetPatient)
 	medical.Post("/record", helpers.AuthAllMiddleware, handlers.MedicalAddRecord)
 	// medical.Get("/record", helpers.AuthAllMiddleware, handlers.RecordGet)
-	image.Post("/", helpers.AuthAllMiddleware, handlers.MediaController)
+	// image.Post("/", helpers.AuthAllMiddleware, handlers.MediaController)
 
 	log.Fatal(app.Listen(":8080"))
 }

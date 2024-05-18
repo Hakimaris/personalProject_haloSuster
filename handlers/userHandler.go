@@ -70,29 +70,48 @@ func GetUser(c *fiber.Ctx) error {
 	if err != nil {
 		offsetInt = 0
 	}
-	
+
 	// Add limit and offset to the query string
 	query += " LIMIT :limit OFFSET :offset"
 	args["limit"] = limitInt
 	args["offset"] = offsetInt
-	
+
 	namedQuery, err := conn.PrepareNamed(query)
 	fmt.Print(namedQuery)
-if err != nil {
-    log.Println("Failed to prepare the query:", err)
-    return c.Status(500).SendString(err.Error())
-}
+	if err != nil {
+		log.Println("Failed to prepare the query:", err)
+		return c.Status(500).SendString(err.Error())
+	}
 
-// Define a slice to hold the results
-var users []models.UserModel
+	// Define a slice and struct to hold the results
+	var users []models.UserModel
+	type UserView struct {
+		UserId    string `json:"userId"`
+		NIP       int64  `json:"nip"`
+		Name      string `json:"name"`
+		CreatedAt string `json:"createdAt"`
+	}
 
-// Execute the query and load the results into the users slice
-err = namedQuery.Select(&users, args)
-if err != nil {
-    log.Println("Failed to execute the query:", err)
-    return c.Status(500).SendString(err.Error())
-}
+	// Execute the query and load the results into the users slice
+	err = namedQuery.Select(&users, args)
+	if err != nil {
+		log.Println("Failed to execute the query:", err)
+		return c.Status(500).SendString(err.Error())
+	}
 
-		// Return the results as JSON
-	return c.Status(200).JSON(users)
+	var userViews []UserView
+	for _, user := range users {
+		userViews = append(userViews, UserView{
+			UserId:    user.ID,
+			NIP:       user.NIP,
+			Name:      user.Name,
+			CreatedAt: user.CreatedAt,
+		})
+	}
+
+	// Return the results as JSON
+	return c.Status(200).JSON(fiber.Map{
+		"message": "success",
+		"data":    userViews,
+	})
 }
