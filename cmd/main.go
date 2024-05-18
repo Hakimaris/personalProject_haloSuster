@@ -45,7 +45,7 @@ func main() {
 	medical.Get("/patient", helpers.AuthAllMiddleware, handlers.MedicalGetPatient)
 	medical.Post("/record", helpers.AuthAllMiddleware, handlers.MedicalAddRecord)
 	// medical.Get("/record", helpers.AuthAllMiddleware, handlers.RecordGet)
-	image.Post("/", helpers.AuthAllMiddleware, handlers.MediaController)
+	image.Post("/", helpers.AuthAllMiddleware, handlers.UploadImage)
 
 	log.Fatal(app.Listen(":8080"))
 }

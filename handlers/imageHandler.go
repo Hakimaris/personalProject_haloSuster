@@ -18,9 +18,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type MediaController struct{}
-
-func (h MediaController) UploadImage(c *fiber.Ctx) error {
+func UploadImage(c *fiber.Ctx) error {
 	form, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "server error"})
@@ -46,10 +44,14 @@ func (h MediaController) UploadImage(c *fiber.Ctx) error {
 
 	fileName := uuid.New().String() + filepath.Ext(file.Filename)
 
-	S3_REGION := os.Getenv("S3_REGION")
-	S3_ID := os.Getenv("S3_ID")
-	S3_SECRET_KEY := os.Getenv("S3_SECRET_KEY")
-	S3_BUCKET_NAME := os.Getenv("S3_BUCKET_NAME")
+	S3_REGION := os.Getenv("AWS_REGION")
+	S3_ID := os.Getenv("AWS_ACCESS_KEY_ID")
+	S3_SECRET_KEY := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	S3_BUCKET_NAME := os.Getenv("AWS_S3_BUCKET_NAME")
+	// fmt.Println("AWS_REGION:", S3_REGION)
+	// fmt.Println("AWS_ACCESS_KEY:", S3_ID)
+	// fmt.Println("AWS_SECRET_ACCESS_KEY:", S3_SECRET_KEY)
+	// fmt.Println("AWS_S3_BUCKET_NAME:", S3_BUCKET_NAME)
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(S3_REGION),
 		Credentials: credentials.NewStaticCredentials(S3_ID, S3_SECRET_KEY, ""),
@@ -67,25 +69,29 @@ func (h MediaController) UploadImage(c *fiber.Ctx) error {
 	}
 	defer fileBuffer.Close()
 
+	// Copy the fileBuffer to buffer
 	buffer := new(bytes.Buffer)
 	_, err = io.Copy(buffer, fileBuffer)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to read file"})
 	}
 
-	_, _, err = image.Decode(buffer)
+	// Decode the image from the buffer
+	_, _, err = image.Decode(bytes.NewReader(buffer.Bytes()))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to decode image"})
 	}
 
-	// Upload the file to S3
+	// Upload the file to S3.
 	_, err = s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(S3_BUCKET_NAME),
 		Key:    aws.String(fileName),
-		Body:   bytes.NewReader(buffer.Bytes()),
+		ACL:    aws.String("public-read"),
+		Body:   bytes.NewReader(buffer.Bytes()),  // Re-read from the buffer
 	})
 
 	if err != nil {
+		fmt.Println(err)
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to upload file to S3"})
 	}
 	url := fmt.Sprintf("https://%s.s3-%s.amazonaws.com/%s", S3_BUCKET_NAME, S3_REGION, fileName)
