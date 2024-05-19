@@ -47,7 +47,7 @@ func UserLogin(c *fiber.Ctx) error {
 		})
 	}
 	if count == 0 {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(404).JSON(fiber.Map{
 			"message": "nip not found",
 		})
 	}
@@ -78,10 +78,10 @@ func UserLogin(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User logged in successfully",
 		"data": struct {
-			Id          string `json:"id"`
+			Id          string `json:"userId"`
 			NIP         int64  `json:"nip"`
 			Name        string `json:"name"`
-			AccessToken string `json:"access_token"`
+			AccessToken string `json:"accessToken"`
 		}{
 			Id:          loginResult.ID,
 			NIP:         loginResult.NIP,
@@ -137,7 +137,7 @@ func UserRegister(c *fiber.Ctx) error {
 
 	// check name format
 	if !helpers.ValidateName(registerResult.Name) {
-		return c.Status(409).JSON(fiber.Map{
+		return c.Status(400).JSON(fiber.Map{
 			"message": "name format should be between 5-50 characters",
 		})
 	}
@@ -176,10 +176,10 @@ func UserRegister(c *fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{
 		"message": "User registered successfully",
 		"data": struct {
-			Id          string `json:"id"`
+			Id          string `json:"userId"`
 			NIP         int64  `json:"nip"`
 			Name        string `json:"name"`
-			AccessToken string `json:"access_token"`
+			AccessToken string `json:"accessToken"`
 		}{
 			Id:          registerResult.ID,
 			NIP:         registerResult.NIP,

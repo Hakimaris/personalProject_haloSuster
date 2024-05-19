@@ -165,7 +165,7 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(200).JSON(fiber.Map{
+	return c.Status(201).JSON(fiber.Map{
 		"message": "record successfully added",
 	})
 }
@@ -238,7 +238,7 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 		Name           string `json:"name"`
 		Birthdate      string `json:"birthDate"`
 		Gender         string `json:"gender"`
-		CreatedAt      string `json:"createdAt`
+		CreatedAt      string `json:"createdAt"`
 	}
 
 	// Execute the query and load the results into the patients slice

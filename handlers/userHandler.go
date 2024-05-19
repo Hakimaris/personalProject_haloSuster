@@ -98,7 +98,7 @@ func GetUser(c *fiber.Ctx) error {
 		return c.Status(500).SendString(err.Error())
 	}
 
-	var userViews []UserView
+	userViews := make([]UserView, 0)
 	for _, user := range users {
 		userViews = append(userViews, UserView{
 			UserId:    user.ID,

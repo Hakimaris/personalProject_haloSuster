@@ -55,7 +55,7 @@ func ValidateName(name string) bool {
 }
 
 func ValidatePassword(password string) bool {
-	if len(password) < 8 || len(password) > 33 {
+	if len(password) < 5 || len(password) > 33 {
 		return false
 	}
 	return true

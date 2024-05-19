@@ -80,10 +80,10 @@ func NurseLogin(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User logged in successfully",
 		"data": struct {
-			Id          string `json:"id"`
+			Id          string `json:"userId"`
 			NIP         int64  `json:"nip"`
 			Name        string `json:"name"`
-			AccessToken string `json:"access_token"`
+			AccessToken string `json:"accessToken"`
 		}{
 			Id:          loginResult.ID,
 			NIP:         loginResult.NIP,
@@ -94,10 +94,10 @@ func NurseLogin(c *fiber.Ctx) error {
 
 	//Check whether the user exists
 	// var count int
-	// err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 AND id = $2 LIMIT 1", userNip, userId).Scan(&count)
-	// if err_db != nil {
+	// err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 AND id = $2 LIMIT 1", userNip, userId).Scan(&count)
+	// if err != nil {
 	// 	return c.Status(500).JSON(fiber.Map{
-	// 		"message": err_db,
+	// 		"message": err,
 	// 	})
 	// }
 	// if count == 0 {
@@ -116,6 +116,13 @@ func NurseRegister(c *fiber.Ctx) error {
 	if err := c.BodyParser(&nurseModel); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "error parsing body",
+		})
+	}
+
+	//Check if request is empty
+	if nurseModel.NIP == 0 || nurseModel.Name == "" || nurseModel.IdentityCardScanning == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip or password is empty",
 		})
 	}
 
@@ -139,10 +146,10 @@ func NurseRegister(c *fiber.Ctx) error {
 
 	// Check if NIP exists
 	var count int
-	err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", nurseModel.NIP).Scan(&count)
-	if err_db != nil {
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", nurseModel.NIP).Scan(&count)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 	if count == 1 {
@@ -152,10 +159,10 @@ func NurseRegister(c *fiber.Ctx) error {
 	}
 
 	// insert data
-	_, err_db = conn.Exec("INSERT INTO \"Users\" (nip, name, \"identityCardScanning\") VALUES ($1, $2, $3)", nurseModel.NIP, nurseModel.Name, nurseModel.IdentityCardScanning)
-	if err_db != nil {
+	_, err = conn.Exec("INSERT INTO \"Users\" (nip, name, \"identityCardScanning\") VALUES ($1, $2, $3)", nurseModel.NIP, nurseModel.Name, nurseModel.IdentityCardScanning)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db.Error(),
+			"message": err.Error(),
 		})
 	}
 
@@ -170,7 +177,7 @@ func NurseRegister(c *fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{
 		"message": "User registered successfully",
 		"data": struct {
-			Id   string `json:"id"`
+			Id   string `json:"userId"`
 			NIP  int64  `json:"nip"`
 			Name string `json:"name"`
 			// AccessToken string `json:"access_token"`
@@ -194,6 +201,13 @@ func NursePut(c *fiber.Ctx) error {
 		})
 	}
 
+	//Check if request is empty
+	if nurseModel.NIP == 0 || nurseModel.Name == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "nip or password is empty",
+		})
+	}
+
 	if !helpers.ValidateNIP(nurseModel.NIP) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
@@ -208,10 +222,10 @@ func NursePut(c *fiber.Ctx) error {
 
 	// Check if User exists
 	var countUser int
-	err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
-	if err_db != nil {
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 	if countUser == 0 {
@@ -220,12 +234,26 @@ func NursePut(c *fiber.Ctx) error {
 		})
 	}
 
+	// Check if User is nurse
+	var nip string
+	err = conn.QueryRow("SELECT nip FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&nip)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": err,
+		})
+	}
+	if nip[:3] != "303" {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "User is not a nurse",
+		})
+	}
+
 	// Check if NIP exists
 	var count int
-	err_db = conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 AND id != $2 LIMIT 1", nurseModel.NIP, userId).Scan(&count)
-	if err_db != nil {
+	err = conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 AND id != $2 LIMIT 1", nurseModel.NIP, userId).Scan(&count)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 	if count == 1 {
@@ -235,10 +263,10 @@ func NursePut(c *fiber.Ctx) error {
 	}
 
 	// update data
-	_, err_db = conn.Exec("UPDATE \"Users\" SET nip = $1, name = $2 WHERE id = $3", nurseModel.NIP, nurseModel.Name, userId)
-	if err_db != nil {
+	_, err = conn.Exec("UPDATE \"Users\" SET nip = $1, name = $2 WHERE id = $3", nurseModel.NIP, nurseModel.Name, userId)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db.Error(),
+			"message": err.Error(),
 		})
 	}
 	return c.Status(200).JSON(fiber.Map{
@@ -295,14 +323,21 @@ func NurseAccess(c *fiber.Ctx) error {
 	userId := c.Params("userId")
 	conn := db.CreateConn()
 
-	var nurseModel models.UserModel
-	if err := c.BodyParser(&nurseModel); err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": "error parsing body",
+	var passwordNew string
+	if err := c.BodyParser(&passwordNew); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid request payload",
 		})
 	}
 
-	if !helpers.ValidatePassword(nurseModel.Password) {
+	//Check if request is empty
+	if passwordNew == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "password is empty",
+		})
+	}
+
+	if !helpers.ValidatePassword(passwordNew) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "password format is invalid",
 		})
@@ -310,10 +345,10 @@ func NurseAccess(c *fiber.Ctx) error {
 
 	// Check if User exists
 	var countUser int
-	err_db := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
-	if err_db != nil {
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 	if countUser == 0 {
@@ -324,10 +359,10 @@ func NurseAccess(c *fiber.Ctx) error {
 
 	// Check if User is nurse
 	var nip string
-	err_db = conn.QueryRow("SELECT nip FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&nip)
-	if err_db != nil {
+	err = conn.QueryRow("SELECT nip FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&nip)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 
@@ -338,16 +373,16 @@ func NurseAccess(c *fiber.Ctx) error {
 	}
 
 	//update data
-	newPass, err := helpers.HashPassword(nurseModel.Password)
+	newPass, err := helpers.HashPassword(passwordNew)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "error hashing password",
 		})
 	}
-	_, err_db = conn.Exec("UPDATE \"Users\" SET password = $1 WHERE id = $2", newPass, userId)
-	if err_db != nil {
+	_, err = conn.Exec("UPDATE \"Users\" SET password = $1 WHERE id = $2", newPass, userId)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db.Error(),
+			"message": err.Error(),
 		})
 	}
 	return c.Status(200).JSON(fiber.Map{
