@@ -5,6 +5,7 @@ import (
 	"HaloSuster/helpers"
 	"HaloSuster/models"
 	"database/sql"
+
 	// "fmt"
 
 	"strconv"
@@ -249,12 +250,26 @@ func NurseDelete(c *fiber.Ctx) error {
 	userId := c.Params("userId")
 	conn := db.CreateConn()
 
+	// Check if User exists
+	var countUser int
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": err,
+		})
+	}
+	if countUser == 0 {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
 	// Check if User is nurse
 	var nip string
-	err_db := conn.QueryRow("SELECT nip FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&nip)
-	if err_db != nil {
+	err = conn.QueryRow("SELECT nip FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&nip)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
+			"message": err,
 		})
 	}
 	// fmt.Print(nip[:3])
@@ -264,25 +279,11 @@ func NurseDelete(c *fiber.Ctx) error {
 		})
 	}
 
-	// Check if User exists
-	var countUser int
-	err_db = conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE id = $1 LIMIT 1", userId).Scan(&countUser)
-	if err_db != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": err_db,
-		})
-	}
-	if countUser == 0 {
-		return c.Status(404).JSON(fiber.Map{
-			"message": "User not found",
-		})
-	}
-
 	// delete data
-	_, err_db = conn.Exec("DELETE FROM \"Users\" WHERE id = $1", userId)
-	if err_db != nil {
+	_, err = conn.Exec("DELETE FROM \"Users\" WHERE id = $1", userId)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db.Error(),
+			"message": err.Error(),
 		})
 	}
 	return c.Status(200).JSON(fiber.Map{

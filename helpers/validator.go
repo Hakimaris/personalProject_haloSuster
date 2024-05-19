@@ -12,17 +12,17 @@ func ValidateNIP(nip int64) bool {
 	nipStr := strconv.FormatInt(nip, 10)
 
 	// Check length
-	if len(nipStr) < 13 && len(nipStr) > 15 {
+	if len(nipStr) < 13 || len(nipStr) > 15 {
 		return false
 	}
 
 	// Check first three digits
-	if nipStr[:3] != "615" && nipStr[:3] != "303" {
+	if len(nipStr) < 3 || (nipStr[:3] != "615" && nipStr[:3] != "303") {
 		return false
 	}
 
 	// Check fourth digit
-	if nipStr[3] != '1' && nipStr[3] != '2' {
+	if len(nipStr) < 4 || (nipStr[3] != '1' && nipStr[3] != '2') {
 		return false
 	}
 

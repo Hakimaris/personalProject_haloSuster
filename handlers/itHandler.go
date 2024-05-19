@@ -6,17 +6,10 @@ import (
 	"HaloSuster/db"
 	"HaloSuster/helpers"
 	"HaloSuster/models"
-	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-// func GetUser(c *fiber.Ctx) error {
-// 	return c.Status(200).JSON(fiber.Map{
-// 		"message": "im it handler!",
-// 	})
-// }
 
 func UserLogin(c *fiber.Ctx) error {
 	conn := db.CreateConn()
@@ -37,7 +30,7 @@ func UserLogin(c *fiber.Ctx) error {
 
 	// Check nip format
 	if !helpers.ValidateNIP(loginResult.NIP) {
-		fmt.Println("nip exist")
+		// fmt.Println("nip exist")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
 		})
@@ -46,11 +39,11 @@ func UserLogin(c *fiber.Ctx) error {
 	// Check if NIP exists
 	var count int
 	// err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"user\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
-	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
 	// fmt.Println("nip exist success")
-	if err_nip != nil {
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_nip,
+			"message": err,
 		})
 	}
 	if count == 0 {
@@ -58,7 +51,7 @@ func UserLogin(c *fiber.Ctx) error {
 			"message": "nip not found",
 		})
 	}
-	
+
 	if strconv.FormatInt(loginResult.NIP, 10)[:3] != "615" {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid for it user",
@@ -67,13 +60,13 @@ func UserLogin(c *fiber.Ctx) error {
 
 	// get user data
 	var dbpassword string
-	err_data := conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
-	if err_data != nil {
+	err = conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_data.Error(),
+			"message": err.Error(),
 		})
 	}
-	fmt.Println(dbpassword)
+	// fmt.Println(dbpassword)
 
 	// check password
 	if !helpers.CheckPasswordHash(loginResult.Password, dbpassword) {
@@ -130,10 +123,10 @@ func UserRegister(c *fiber.Ctx) error {
 
 	// Check if NIP already exists
 	var count int
-	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
-	if err_nip != nil {
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&count)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_nip,
+			"message": err,
 		})
 	}
 	if count > 0 {
@@ -157,26 +150,26 @@ func UserRegister(c *fiber.Ctx) error {
 	}
 
 	// hash password
-	newPass, err_psw := helpers.HashPassword(registerResult.Password)
-	if err_psw != nil {
+	newPass, err := helpers.HashPassword(registerResult.Password)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "error hashing password",
 		})
 	}
 
 	// insert data
-	_, err_db := conn.Exec("INSERT INTO \"Users\" (nip, name, password) VALUES ($1, $2, $3)", registerResult.NIP, registerResult.Name, newPass)
-	if err_db != nil {
+	_, err = conn.Exec("INSERT INTO \"Users\" (nip, name, password) VALUES ($1, $2, $3)", registerResult.NIP, registerResult.Name, newPass)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_db.Error(),
+			"message": err.Error(),
 		})
 	}
 
 	// get inserted data
-	err_data := conn.QueryRow("SELECT id FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&registerResult.ID)
-	if err_data != nil {
+	err = conn.QueryRow("SELECT id FROM \"Users\" WHERE nip = $1 LIMIT 1", registerResult.NIP).Scan(&registerResult.ID)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_data.Error(),
+			"message": err.Error(),
 		})
 	}
 
