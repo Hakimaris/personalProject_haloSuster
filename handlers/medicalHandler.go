@@ -4,7 +4,7 @@ import (
 	"HaloSuster/db"
 	"HaloSuster/helpers"
 	"HaloSuster/models"
-	"fmt"
+	// "fmt"
 	"log"
 	"strconv"
 
@@ -23,12 +23,12 @@ func MedicalAddPatient(c *fiber.Ctx) error {
 			"message": "error parsing body",
 		})
 	}
-	fmt.Println("IdentityNumber:", patientRequest.IdentityNumber)
-	fmt.Println("Name:", patientRequest.Name)
-	fmt.Println("PhoneNumber:", patientRequest.PhoneNumber)
-	fmt.Println("BirthDate:", patientRequest.BirthDate)
-	fmt.Println("IdentityCardScanImg:", patientRequest.IdentityCardScanImg)
-	fmt.Println("Gender:", patientRequest.Gender)
+	// fmt.Println("IdentityNumber:", patientRequest.IdentityNumber)
+	// fmt.Println("Name:", patientRequest.Name)
+	// fmt.Println("PhoneNumber:", patientRequest.PhoneNumber)
+	// fmt.Println("BirthDate:", patientRequest.BirthDate)
+	// fmt.Println("IdentityCardScanImg:", patientRequest.IdentityCardScanImg)
+	// fmt.Println("Gender:", patientRequest.Gender)
 
 	if patientRequest.IdentityNumber == 0 || patientRequest.Name == "" || patientRequest.PhoneNumber == "" || patientRequest.BirthDate == "" || patientRequest.IdentityCardScanImg == "" || patientRequest.Gender == "" {
 		return c.Status(400).JSON(fiber.Map{
@@ -154,10 +154,10 @@ func MedicalAddRecord(c *fiber.Ctx) error {
 	}
 
 	// Insert the data
-	fmt.Println("IdentityNumber:", recordRequest.IdentityNumber)
-	fmt.Println("Symptoms:", recordRequest.Symptoms)
-	fmt.Println("Medications:", recordRequest.Medications)
-	fmt.Println("UserID:", userID)
+	// fmt.Println("IdentityNumber:", recordRequest.IdentityNumber)
+	// fmt.Println("Symptoms:", recordRequest.Symptoms)
+	// fmt.Println("Medications:", recordRequest.Medications)
+	// fmt.Println("UserID:", userID)
 	_, err = conn.Exec("INSERT INTO \"record\" (\"identityNumber\", symptoms, medications, \"creatorId\") VALUES ($1, $2, $3, $4)", recordRequest.IdentityNumber, recordRequest.Symptoms, recordRequest.Medications, userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -224,7 +224,7 @@ func MedicalGetPatient(c *fiber.Ctx) error {
 	args["offset"] = offsetInt
 
 	namedQuery, err := conn.PrepareNamed(query)
-	fmt.Print(namedQuery)
+	// fmt.Print(namedQuery)
 	if err != nil {
 		log.Println("Failed to prepare the query:", err)
 		return c.Status(500).SendString(err.Error())
@@ -291,7 +291,7 @@ func MedicalGetRecord(c *fiber.Ctx) error {
         query += ` WHERE r."identityNumber" = ` + identityNumber
     }
     if userId != "" {
-        query += ` AND u.id = '` + userId + `'`
+        query += ` AND r."creatorId" = '` + userId + `'`
     }
     if nip != "" {
         query += ` AND u.nip = '` + nip + `'`

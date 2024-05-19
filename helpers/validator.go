@@ -2,7 +2,7 @@ package helpers
 
 import (
 	"HaloSuster/models"
-	"fmt"
+	// "fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -80,14 +80,14 @@ func ValidatePhoneNumber(number string) bool {
 }
 
 func ValidateBirthDate(birthDate string) bool {
-	time, err := time.Parse(time.RFC3339, birthDate)
-	fmt.Println(time)
+	_, err := time.Parse(time.RFC3339, birthDate)
+	// fmt.Println(time)
 	return err == nil
 }
 
 func ValidateGender(gender models.Gender) bool {
-	fmt.Printf("Input gender: %v, type: %T\n", gender, gender)
+	// fmt.Printf("Input gender: %v, type: %T\n", gender, gender)
 	isValid := !(gender != "male" && gender != "female")
-	fmt.Printf("Is valid: %v\n", isValid)
+	// fmt.Printf("Is valid: %v\n", isValid)
 	return isValid
 }

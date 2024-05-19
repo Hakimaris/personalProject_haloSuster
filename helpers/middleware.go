@@ -95,9 +95,8 @@ func AuthITMiddleware(c *fiber.Ctx) error {
 
 	// Parse and validate the JWT token, and extract the Nip
 	id, nip, err := ParseToken(tokenStr)
-	// fmt.Println(tokenStr)
-	fmt.Println(id)
-	fmt.Println(nip)
+	// fmt.Println(id)
+	// fmt.Println(nip)
 	if err != nil {
 		return c.Status(401).SendString("Invalid JWT token")
 	}
@@ -131,7 +130,7 @@ func AuthAllMiddleware(c *fiber.Ctx) error {
 	// Parse and validate the JWT token, and extract the Nip
 	id, nip, err := ParseToken(tokenStr)
 
-	if !(nip[:3] == "303" || nip[:3] == "615"){
+	if len(nip) < 3 || !(nip[:3] == "303" || nip[:3] == "615") {
 		return c.Status(401).SendString("Invalid nip")
 	}
 

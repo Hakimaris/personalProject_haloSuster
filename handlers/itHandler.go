@@ -180,7 +180,7 @@ func UserRegister(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(200).JSON(fiber.Map{
+	return c.Status(201).JSON(fiber.Map{
 		"message": "User registered successfully",
 		"data": struct {
 			Id          string `json:"id"`

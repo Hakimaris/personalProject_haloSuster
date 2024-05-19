@@ -4,7 +4,8 @@ import (
 	"HaloSuster/db"
 	"HaloSuster/helpers"
 	"HaloSuster/models"
-	"fmt"
+	"database/sql"
+	// "fmt"
 
 	"strconv"
 
@@ -29,7 +30,7 @@ func NurseLogin(c *fiber.Ctx) error {
 
 	// Check nip format
 	if !helpers.ValidateNIP(loginResult.NIP) {
-		fmt.Println("nip exist")
+		// fmt.Println("nip exist")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "nip format is invalid",
 		})
@@ -42,10 +43,10 @@ func NurseLogin(c *fiber.Ctx) error {
 
 	// Check if NIP exists
 	var count int
-	err_nip := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
-	if err_nip != nil {
+	err := conn.QueryRow("SELECT COUNT(*) FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&count)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_nip,
+			"message": err,
 		})
 	}
 	if count == 0 {
@@ -55,16 +56,21 @@ func NurseLogin(c *fiber.Ctx) error {
 	}
 
 	// get user data
-	var dbpassword string
-	err_data := conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
-	if err_data != nil {
+	var dbpassword sql.NullString
+	err = conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": err_data.Error(),
+			"message": err.Error(),
+		})
+	}
+	if !dbpassword.Valid {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "User still has no access to the system",
 		})
 	}
 
 	// check password
-	if !helpers.CheckPasswordHash(loginResult.Password, dbpassword) {
+	if !helpers.CheckPasswordHash(loginResult.Password, dbpassword.String) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "password is incorrect",
 		})
@@ -251,7 +257,7 @@ func NurseDelete(c *fiber.Ctx) error {
 			"message": err_db,
 		})
 	}
-	fmt.Print(nip[:3])
+	// fmt.Print(nip[:3])
 	if nip[:3] != "303" {
 		return c.Status(404).JSON(fiber.Map{
 			"message": "User is not a nurse",
@@ -337,13 +343,12 @@ func NurseAccess(c *fiber.Ctx) error {
 			"message": "error hashing password",
 		})
 	}
-	_, err_db = conn.Exec("UPDATE \"Users\" SET password = $1", newPass)
+	_, err_db = conn.Exec("UPDATE \"Users\" SET password = $1 WHERE id = $2", newPass, userId)
 	if err_db != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": err_db.Error(),
 		})
 	}
-
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User data updated successfully",
 	})

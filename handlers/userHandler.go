@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
@@ -77,7 +76,7 @@ func GetUser(c *fiber.Ctx) error {
 	args["offset"] = offsetInt
 
 	namedQuery, err := conn.PrepareNamed(query)
-	fmt.Print(namedQuery)
+	// fmt.Print(namedQuery)
 	if err != nil {
 		log.Println("Failed to prepare the query:", err)
 		return c.Status(500).SendString(err.Error())
