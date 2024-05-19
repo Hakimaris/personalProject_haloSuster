@@ -21,7 +21,7 @@ import (
 func UploadImage(c *fiber.Ctx) error {
 	form, err := c.MultipartForm()
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"message": "server error"})
+		return c.Status(400).JSON(fiber.Map{"message": "server error"})
 	}
 
 	files := form.File["file"]
