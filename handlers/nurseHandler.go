@@ -71,6 +71,19 @@ func NurseLogin(c *fiber.Ctx) error {
 			"message": "User still has no access to the system",
 		})
 	}
+	// var dbpassword sql.NullString
+	// err = conn.QueryRow("SELECT id, name, password FROM \"Users\" WHERE nip = $1 LIMIT 1", loginResult.NIP).Scan(&loginResult.ID, &loginResult.Name, &dbpassword)
+	// if err != nil {
+	// 	return c.Status(500).JSON(fiber.Map{
+	// 		"message": err.Error(),
+	// 	})
+	// }
+	// fmt.Println(dbpassword)
+	// if !dbpassword.Valid {
+	// 	return c.Status(400).JSON(fiber.Map{
+	// 		"message": "User still has no access to the system",
+	// 	})
+	// }
 
 	// check password
 	if !helpers.CheckPasswordHash(loginResult.Password, dbpassword.String) {
