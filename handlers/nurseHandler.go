@@ -5,6 +5,7 @@ import (
 	"HaloSuster/helpers"
 	"HaloSuster/models"
 	"database/sql"
+	"fmt"
 
 	// "fmt"
 
@@ -64,6 +65,7 @@ func NurseLogin(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
+	fmt.Println(dbpassword)
 	if !dbpassword.Valid {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "User still has no access to the system",
