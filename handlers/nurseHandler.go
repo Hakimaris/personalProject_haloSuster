@@ -323,21 +323,32 @@ func NurseAccess(c *fiber.Ctx) error {
 	userId := c.Params("userId")
 	conn := db.CreateConn()
 
-	var passwordNew string
-	if err := c.BodyParser(&passwordNew); err != nil {
+	type PasswordPayload struct {
+		Password string `json:"password"`
+	}
+
+	var payload PasswordPayload
+	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Invalid request payload",
 		})
 	}
 
 	//Check if request is empty
-	if passwordNew == "" {
+	if payload.Password == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "password is empty",
 		})
 	}
 
-	if !helpers.ValidatePassword(passwordNew) {
+	//Check if request is empty
+	if payload.Password == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "password is empty",
+		})
+	}
+
+	if !helpers.ValidatePassword(payload.Password) {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "password format is invalid",
 		})
@@ -373,7 +384,7 @@ func NurseAccess(c *fiber.Ctx) error {
 	}
 
 	//update data
-	newPass, err := helpers.HashPassword(passwordNew)
+	newPass, err := helpers.HashPassword(payload.Password)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "error hashing password",
